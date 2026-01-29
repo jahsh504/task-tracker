@@ -14,18 +14,28 @@ function App() {
     setTasks(data);
   };
 
-  const createTask = async () => {
-    if (!title) return;
+const [error, setError] = useState(null);
 
-    await fetch("http://localhost:5000/tasks", {
+const createTask = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title })
     });
 
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error);
+    }
+
     setTitle("");
+    setError(null);
     fetchTasks();
-  };
+  } catch (err) {
+    setError(err.message);
+  }
+};
 
   const updateStatus = async (id, status) => {
     await fetch(`http://localhost:5000/tasks/${id}/status`, {
@@ -47,6 +57,7 @@ function App() {
         placeholder="Task title"
       />
       <button onClick={createTask}>Add</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <ul>
         {tasks.map(task => (
